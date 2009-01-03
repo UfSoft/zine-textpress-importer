@@ -1,0 +1,6 @@
+Name: Textpress Importer
+Author: Pedro Algarvio, <ufs@ufsoft.org>
+
+Version: 0.1
+License: BSD
+Description:

@@ -33,6 +33,9 @@ except ImportError:
 
 ATOM_NS = 'http://www.w3.org/2005/Atom'
 TEXTPRESS_NS = 'http://textpress.pocoo.org/'
+TEXTPRESS_TAG_URI = TEXTPRESS_NS + '#tag-scheme'
+TEXTPRESS_CATEGORY_URI = TEXTPRESS_NS + '#category-scheme'
+
 
 XML_PREAMBLE = u'''\
 <?xml version="1.0" encoding="utf-8"?>
@@ -138,8 +141,11 @@ class Participant(object):
 
 class Writer(object):
 
-    def __init__(self, app):
+    def __init__(self, app, description_to_category=True,
+                 tags_to_categories=False):
         self.app = app
+        self.description_to_category = description_to_category
+        self.tags_to_categories = tags_to_categories
         self.etree = etree = get_etree()
         self.atom = _ElementHelper(etree, ATOM_NS)
         self.tp = _ElementHelper(etree, TEXTPRESS_NS)
@@ -288,13 +294,46 @@ class Writer(object):
                 'parser_data':  c.parser_data
             }, 2).encode('base64'), parent=comment)
 
+        for tag in post.tags:
+            if (tag.description and self.description_to_category) \
+                                                    or self.tags_to_categories:
+                attrib = dict(term=tag.slug, scheme=TEXTPRESS_CATEGORY_URI)
+            else:
+                attrib = dict(term=tag.slug, scheme=TEXTPRESS_TAG_URI)
+            if tag.slug != tag.name:
+                attrib['label'] = tag.name
+            self.atom('category', attrib=attrib, parent=entry)
+
         for participant in self.participants:
             participant.process_post(entry, post)
         return entry
 
-def main(argv):
+def main():
+    from optparse import OptionParser
     from textpress.application import make_textpress
-    instance_folder = argv[0]
+
+    parser = OptionParser()
+    parser.add_option(
+        '--instance', '-i', help="Path to Textpress instance folder")
+    parser.add_option(
+        '--tags-to-categories', '-t', default=False, action='store_true',
+        help="Convert all existing tags to categories instead of tags. "
+             "(%default)")
+    parser.add_option(
+        '--with-descriptions-to-categories', '-d', default=False,
+        action='store_true',
+        help="Convert all tags with descriptions to categories and all others "
+             "are kept as tags. (%default)")
+
+    options, args = parser.parse_args()
+    if not options.instance:
+        parser.print_help()
+        parser.error("you need to pass the path to your instance folder")
+    elif options.tags_to_categories and options.with_descriptions_to_categories:
+        parser.error("you can only pass one of --tags-to-categories/"
+                     "--with-descriptions-to-categories")
+
+    instance_folder = options.instance
     print "Exporting from %s to" % instance_folder,
     application = make_textpress(instance_folder, True)
 
@@ -304,15 +343,11 @@ def main(argv):
     print export_filename
     export_file = open(export_filename, 'w')
 
-    exporter = Writer(application)
-    export = exporter._generate()
-    for entry in export:
+    exporter = Writer(application, options.with_descriptions_to_categories,
+                      options.tags_to_categories)
+    for entry in exporter._generate():
         export_file.write(entry)
 
 if __name__ == '__main__':
-    import sys
-    if len(sys.argv) < 2:
-        sys.exit("You need to pass your Textpress instance folder as an "
-                 "argument:\n  %s <instance_folder_path>" % sys.argv[0])
-    main(sys.argv[1:])
+    main()
 

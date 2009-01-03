@@ -11,23 +11,26 @@
 """
 from pickle import loads
 from lxml import etree
+from os.path import join, dirname
 from zine.application import get_application
 from zine.i18n import _, lazy_gettext
 from zine.importers import Importer, Blog, Tag, Category, Author, Post, Comment
-from zine.forms import FeedImportForm
-from zine.utils import log
+from zine.importers.feed import Extension
+from zine.utils import log, forms
 from zine.utils.admin import flash
 from zine.utils.dates import parse_iso8601
 from zine.utils.xml import Namespace, to_text
 from zine.utils.http import redirect_to
 from zine.utils.zeml import load_parser_data
+from zine.utils.validators import is_valid_url
 from zine.utils.exceptions import UserException
-from zine.zxa import ATOM_NS, XML_NS, ZINE_TAG_URI, ZINE_CATEGORY_URI
-
-# SLUGS
+from zine.zxa import ATOM_NS, XML_NS
 
 TEXTPRESS_NS = 'http://textpress.pocoo.org/'
-zine = Namespace(TEXTPRESS_NS)
+TEXTPRESS_TAG_URI = TEXTPRESS_NS + '#tag-scheme'
+TEXTPRESS_CATEGORY_URI = TEXTPRESS_NS + '#category-scheme'
+EXPORTER_LINK = "http://zine.ufsoft.org/browser/textpress-importer/textpress_exporter.py"
+
 atom = Namespace(ATOM_NS)
 xml = Namespace(XML_NS)
 textpress = Namespace(TEXTPRESS_NS)
@@ -186,26 +189,27 @@ class AtomParser(TPParser):
         # was able to figure out what to do with it, we treat it
         # as category.
         tags, categories = self.parse_categories(entry)
+        print 444445556666, tags, categories
 
         link = entry.find(atom.link)
         if link is not None:
             link = link.attrib.get('href')
 
         post = Post(
-            None,
-            _get_text_content(entry.findall(atom.title)),
-            link,
-            published,
-            self.parse_author(entry),
+            entry.findtext(textpress.slug),                 # slug
+            _get_text_content(entry.findall(atom.title)),   # title
+            link,                                           # link
+            published,                                      # pub_date
+            self.parse_author(entry),                       # author
             # XXX: the Post is prefixing the intro before the actual
             # content.  This is the default Zine behavior and makes sense
             # for Zine.  However nearly every blog works differently and
             # treats summary completely different from content.  We should
             # think about that.
-            None,
-            _get_html_content(entry.findall(atom.content)),
-            tags,
-            categories,
+            _get_html_content(entry.findall(atom.summary)), # intro
+            _get_html_content(entry.findall(atom.content)), # body
+            tags,                                           # tags
+            categories,                                     # categories
             parser='html',
             updated=updated,
             uid=entry.findtext(atom.id)
@@ -267,11 +271,12 @@ class AtomParser(TPParser):
             for extension in self.extensions:
                 rv = extension.tag_or_category(category)
                 if rv is not None:
-                    if isinstance(rv, Tag):
-                        tags.append(rv)
-                    else:
+                    print 1234, rv
+                    if isinstance(rv, Category):
                         categories.append(rv)
                         _remember_category(rv, category)
+                    else:
+                        tags.append(rv)
                     break
             else:
                 rv = self._categories_by_term.get(category.attrib['term'])
@@ -281,7 +286,7 @@ class AtomParser(TPParser):
                     _remember_category(rv, category)
                     self.categories.append(rv)
                 categories.append(rv)
-
+        print 12345, tags, categories
         return tags, categories
 
     def parse_comments(self, post):
@@ -294,10 +299,15 @@ class AtomParser(TPParser):
 class FeedImportError(UserException):
     """Raised if the system was unable to import the feed."""
 
+class FeedImportForm(forms.Form):
+    """This form is used in the Textpress importer."""
+    download_url = forms.TextField(
+        lazy_gettext(u'Textpress Export File Download URL'),
+        validators=[is_valid_url()])
 
 class TextPressFeedImporter(Importer):
     name = 'textpress-feed'
-    title = lazy_gettext(u'TextPress Feed Importer')
+    title = lazy_gettext(u'TextPress Importer')
 
     def configure(self, request):
         form = FeedImportForm()
@@ -305,6 +315,13 @@ class TextPressFeedImporter(Importer):
         if request.method == 'POST' and form.validate(request.form):
             feed = request.files.get('feed')
             if form.data['download_url']:
+                if not form.data['download_url'].endswith('.tpxa'):
+                    error = _(u"Don't pass a real feed URL, it should be a"
+                              u"regular URL where you're serving the file "
+                              u"generated with the textpress_export.py script")
+                    flash(error, 'error')
+                    return self.render_admin_page('import_textpress.html',
+                                                  form=form.as_widget())
                 try:
                     feed = urllib.urlopen(form.data['download_url'])
                 except Exception, e:
@@ -322,51 +339,8 @@ class TextPressFeedImporter(Importer):
                 flash(_(u'Added imported items to queue.'))
                 return redirect_to('admin/import')
 
-        return self.render_admin_page('admin/import_feed.html',
+        return self.render_admin_page('import_textpress.html',
                                       form=form.as_widget())
-
-
-class Extension(object):
-    """Extensions are instanciated for each parsing process."""
-    feed_types = frozenset()
-
-    def __init__(self, app, parser, root):
-        self.app = app
-        self.parser = parser
-        self.root = root
-
-    def handle_root(self, blog):
-        """Called after the whole feed was parsed into a blog object."""
-
-    def postprocess_post(self, post):
-        """Postprocess the post."""
-
-    def tag_or_category(self, element):
-        """Passed a <category> element for Atom feeds.  Has to return a
-        category or tag object or `None` if it's not handled by this
-        extension.
-
-        Categories and tags have to be stored in `parser.categories` or
-        `parser.tags` so that the category/tag is actually unique.  The
-        extension also has to look there first for matching categories.
-        """
-
-    def lookup_author(self, author, entry, username, email):
-        """Lookup the author for an element.  `author` is an element
-        that points to the author relevant element for the feed.
-        `entry` points to the whole entry element.
-
-        Authors have to be stored in `parser.authors` to ensure they
-        are unique.  Extensions have to look there first for matching
-        author objects.  If an extension does not know how to handle
-        the element `None` must be returned.
-        """
-
-    def parse_comments(self, post):
-        """Parse the comments for the given post.  If the extension
-        could locate comments for this post it has to return a list
-        of those comments, otherwise return `None`.
-        """
 
 
 class TPZEAExtension(Extension):
@@ -384,7 +358,7 @@ class TPZEAExtension(Extension):
         self._authors = {}
         self._tags = {}
         self._categories = {}
-        self._dependencies = root.find(zine.dependencies)
+        self._dependencies = root.find(textpress.dependencies)
 
         self._lookup_user = etree.XPath('tp:user[@tp:dependency=$id]',
                                         namespaces={'tp': TEXTPRESS_NS})
@@ -419,12 +393,14 @@ class TPZEAExtension(Extension):
         return author
 
     def _parse_tag(self, element):
+        print 'parsing TAG'
         term = element.attrib['term']
         if term not in self._tags:
             self._tags[term] = Tag(term, element.attrib.get('label'))
         return self._tags[term]
 
     def _parse_category(self, element):
+        print 'parsing CATEGORY'
         term = element.attrib['term']
         if term not in self._categories:
             self._categories[term] = Category(
@@ -449,9 +425,9 @@ class TPZEAExtension(Extension):
 
     def tag_or_category(self, element):
         scheme = element.attrib.get('scheme')
-        if scheme == ZINE_TAG_URI:
+        if scheme == TEXTPRESS_TAG_URI:
             return self._parse_tag(element)
-        elif scheme == ZINE_CATEGORY_URI:
+        elif scheme == TEXTPRESS_CATEGORY_URI:
             return self._parse_category(element)
 
     def parse_comments(self, post):
@@ -495,5 +471,10 @@ class TPZEAExtension(Extension):
 
 
 def setup(app, plugin):
+    SHARED_FILES = join(dirname(__file__), 'shared')
+    TEMPLATE_FILES = join(dirname(__file__), 'templates')
+
     app.add_feed_importer_extension(TPZEAExtension)
+    app.add_template_searchpath(TEMPLATE_FILES)
+    app.add_shared_exports('textpress_importer', SHARED_FILES)
     app.add_importer(TextPressFeedImporter)

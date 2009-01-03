@@ -29,7 +29,8 @@ from zine.zxa import ATOM_NS, XML_NS
 TEXTPRESS_NS = 'http://textpress.pocoo.org/'
 TEXTPRESS_TAG_URI = TEXTPRESS_NS + '#tag-scheme'
 TEXTPRESS_CATEGORY_URI = TEXTPRESS_NS + '#category-scheme'
-EXPORTER_LINK = "http://zine.ufsoft.org/browser/textpress-importer/textpress_exporter.py"
+BUGS_LINK = "http://zine.ufsoft.org/newticket?keywords=textpress_export" + \
+            "&component=Textpress%20Importer"
 
 atom = Namespace(ATOM_NS)
 xml = Namespace(XML_NS)
@@ -321,7 +322,8 @@ class TextPressFeedImporter(Importer):
                               u"generated with the textpress_export.py script")
                     flash(error, 'error')
                     return self.render_admin_page('import_textpress.html',
-                                                  form=form.as_widget())
+                                                  form=form.as_widget(),
+                                                  bugs_link=BUGS_LINK)
                 try:
                     feed = urllib.urlopen(form.data['download_url'])
                 except Exception, e:
@@ -340,7 +342,8 @@ class TextPressFeedImporter(Importer):
                 return redirect_to('admin/import')
 
         return self.render_admin_page('import_textpress.html',
-                                      form=form.as_widget())
+                                      form=form.as_widget(),
+                                      bugs_link=BUGS_LINK)
 
 
 class TPZEAExtension(Extension):

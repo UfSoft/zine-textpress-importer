@@ -1,8 +1,14 @@
 Name: Textpress Importer
+Name[pt_PT]: Importador Textpress
 Author: Pedro Algarvio, <ufs@ufsoft.org>
-
+Plugin URL: http://zine.ufsoft.org/
+Author URL: http://blog.ufsoft.org/
 Version: 0.1
 License: GPL
 Description: This plugin allows you to import your posts and it's comments and
              tags from your TextPress production server by providing a script to
              generate the export and the importer to be used from within Zine.
+Description[pt_PT]: Este plugin permite-lhe importar os artigos e suas tags da
+                    sua instalação TextPress a correr no seu servidor ao
+                    fornecer um script para gerar uma exportação e um importador
+                    para ser usado com o Zine.

@@ -317,9 +317,9 @@ class TextPressFeedImporter(Importer):
             feed = request.files.get('feed')
             if form.data['download_url']:
                 if not form.data['download_url'].endswith('.tpxa'):
-                    error = _(u"Don't pass a real feed URL, it should be a"
+                    error = _(u"Don't pass a real feed URL, it should be a "
                               u"regular URL where you're serving the file "
-                              u"generated with the textpress_export.py script")
+                              u"generated with the textpress_exporter.py script")
                     flash(error, 'error')
                     return self.render_admin_page('import_textpress.html',
                                                   form=form.as_widget(),

@@ -1,0 +1,31 @@
+{% extends "admin/layout.html" %}
+{% block title %}{{ _("Import from Textpress") }}{% endblock %}
+{% block contents %}
+  <h1>{{ _("Import from Textpress") }}</h1>
+  <p>{% trans script_link=url_for('textpress_importer/shared', filename='textpress_exporter.py') %}
+    This importer can be used to import an exported textpress
+    <b><tt>&lt;blog_name&gt;_export.tpxa</tt></b>
+    file generated with the
+    <b><tt><a href="{{ script_link }}"
+      >textpress_exporter.py</a></tt></b> script.<br/>
+    It won't handle attachments, so if your Textpress posts have images or files,
+    you'll have to take care of them yourself and by hand, this is, you will
+    probably have to edit the posts once imported and change the <tt>href</tt>
+    locations to the new URL.
+  {% endtrans %}</p>
+  <p>{% trans %}It's also very hard to export from Textpress since no version was
+    actually released. All versions are development versions at different stages.<br>
+    The export script tries to abstract from that, however if you find troubles
+    using the export script <a href="{{ bugs_link}}">file a ticket</a> and I'll
+    try to address the problem.{% endtrans %}</p>
+  {% call form(enctype='multipart/form-data') %}
+    <dl>
+      {{ form.download_url.as_dd() }}
+      <dt>{{ _("Upload Textpress Export File") }}</dt>
+      <dd><input type="file" name="feed" size="20"></dd>
+    </dl>
+    <div class="actions">
+      <input type="submit" value="{{ _('Import') }}">
+    </div>
+  {% endcall %}
+{% endblock %}

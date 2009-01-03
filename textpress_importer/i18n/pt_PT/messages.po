@@ -1,0 +1,125 @@
+# Portuguese (Portugal) translations for PROJECT.
+# Copyright (C) 2009 The Pocoo Team
+# This file is distributed under the same license as the PROJECT project.
+# Pedro Algarvio <ufs@ufsoft.org>, 2009.
+#
+msgid ""
+msgstr ""
+"Project-Id-Version: PROJECT VERSION\n"
+"Report-Msgid-Bugs-To: ufs@ufsoft.org\n"
+"POT-Creation-Date: 2009-01-03 22:21+0000\n"
+"PO-Revision-Date: 2009-01-03 22:30+0000\n"
+"Last-Translator: Pedro Algarvio <ufs@ufsoft.org>\n"
+"Language-Team: pt_PT <LL@li.org>\n"
+"Plural-Forms: nplurals=2; plural=(n != 1)\n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=utf-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+"Generated-By: Babel 1.0dev-r466\n"
+
+#: textpress_importer/__init__.py:97
+msgid "Unknown feed uploaded."
+msgstr "Feed enviado desconhecido."
+
+#: textpress_importer/__init__.py:143
+msgid "Importing of RSS feeds is currently not possible."
+msgstr "Actualmente não é possível importar feeds RSS."
+
+#: textpress_importer/__init__.py:306
+msgid "Textpress Export File Download URL"
+msgstr "URL do Ficheiro Exportado do Textpress"
+
+#: textpress_importer/__init__.py:311
+msgid "TextPress Importer"
+msgstr "Importador do TextPress"
+
+#: textpress_importer/__init__.py:320
+msgid ""
+"Don't pass a real feed URL, it should be a regular URL where you're serving "
+"the file generated with the textpress_exporter.py script"
+msgstr ""
+"Não insira um URL do feed real, deve ser um URL normal de onde está a servir"
+" o ficheiro gerado com o script textpress_exporter.py"
+
+#: textpress_importer/__init__.py:330
+#, python-format
+msgid "Error downloading from URL: %s"
+msgstr "Erro no download do URL: %s"
+
+#: textpress_importer/__init__.py:337
+msgid "Error parsing uploaded file"
+msgstr "Erro ao ler o arquivo enviado"
+
+#: textpress_importer/__init__.py:338
+#, python-format
+msgid "Error parsing feed: %s"
+msgstr "Erro ao ler o feed: %s"
+
+#: textpress_importer/__init__.py:341
+msgid "Added imported items to queue."
+msgstr "Os itens importados foram adicionados à fila de trabalho."
+
+#: textpress_importer/templates/import_textpress.html:2
+#: textpress_importer/templates/import_textpress.html:4
+msgid "Import from Textpress"
+msgstr "Importar do Textpress"
+
+#: textpress_importer/templates/import_textpress.html:5
+#, python-format
+msgid ""
+"\n"
+"    This importer can be used to import an exported textpress\n"
+"    <b><tt>&lt;blog_name&gt;_export.tpxa</tt></b>\n"
+"    file generated with the\n"
+"    <b><tt><a href=\"%(script_link)s\"\n"
+"      >textpress_exporter.py</a></tt></b> script.<br/>\n"
+"    It won't handle attachments, so if your Textpress posts have images or "
+"files,\n"
+"    you'll have to take care of them yourself and by hand, this is, you will"
+"\n"
+"    probably have to edit the posts once imported and change the "
+"<tt>href</tt>\n"
+"    locations to the new URL.\n"
+"  "
+msgstr ""
+"\n"
+"    Este importador pode ser usado para importar um ficheiro exportado\n"
+"    <b><tt>&lt;blog_name&gt;_export.tpxa</tt></b> textpress\n"
+"    gerado com o\n"
+"    <b><tt><a href=\"%(script_link)s\"\n"
+"      >textpress_exporter.py</a></tt></b> script.<br/>\n"
+"    Não lidará com anexos, portando se o seu Textpress inclui imagens ou "
+"ficheiros,\n"
+"    terá que tomar conta deles voçê mesmo e à mão, isto é, provavelmente terá"
+"\n"
+"    que editar os seus artigos uma vez importados e mudar a localização "
+"<tt>href</tt>\n para o novo URL\n"
+"  "
+
+#: textpress_importer/templates/import_textpress.html:16
+#, python-format
+msgid ""
+"It's also very hard to export from Textpress since no version was\n"
+"    actually released. All versions are development versions at different "
+"stages.<br>\n"
+"    The export script tries to abstract from that, however if you find "
+"troubles\n"
+"    using the export script <a href=\"%(bugs_link)s\">file a ticket</a> and "
+"I'll\n"
+"    try to address the problem."
+msgstr ""
+"É também muito difícil exportar do Textpress porque nenhuma versão foi\n"
+"    realmente libertada. Todas as versões são de desenvolvimento em fazes "
+"diferentes.<br>\n"
+"    O script exportador tenta abstrair-se, contudo se encontrar problemas\n"
+"    ao utilizar o script <a href=\"%(bugs_link)s\">submeta um ticket</a> e "
+"    eu tentarei resolver o problema"
+
+#: textpress_importer/templates/import_textpress.html:24
+msgid "Upload Textpress Export File"
+msgstr "Carregar o Ficheiro Exportado do Textpress"
+
+#: textpress_importer/templates/import_textpress.html:28
+msgid "Import"
+msgstr "Importar"
+

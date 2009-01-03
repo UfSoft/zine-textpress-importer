@@ -2,5 +2,7 @@ Name: Textpress Importer
 Author: Pedro Algarvio, <ufs@ufsoft.org>
 
 Version: 0.1
-License: BSD
-Description:
+License: GPL
+Description: This plugin allows you to import your posts and it's comments and
+             tags from your TextPress production server by providing a script to
+             generate the export and the importer to be used from within Zine.

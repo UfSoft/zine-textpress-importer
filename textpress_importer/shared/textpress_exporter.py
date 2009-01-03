@@ -1,6 +1,14 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
 """
+    Download this file into where you host your production TextPress Blog.
+    Once downloaded, execute it and pass `-h` in order to have a look at it's
+    options.
+
+    The implementation was copyied and changed acording to needs from the
+    newest revision of TextPress, right before the TextPress to Zine name
+    changes.
+
     textpress.tpxa
     ~~~~~~~~~~~~~~
 

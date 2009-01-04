@@ -190,7 +190,6 @@ class AtomParser(TPParser):
         # was able to figure out what to do with it, we treat it
         # as category.
         tags, categories = self.parse_categories(entry)
-        print 444445556666, tags, categories
 
         link = entry.find(atom.link)
         if link is not None:
@@ -221,7 +220,6 @@ class AtomParser(TPParser):
         self.parse_comments(post)
 
         for extension in self.extensions:
-            print 2, 'extension', extension
             extension.postprocess_post(post)
 
         return post
@@ -272,7 +270,6 @@ class AtomParser(TPParser):
             for extension in self.extensions:
                 rv = extension.tag_or_category(category)
                 if rv is not None:
-                    print 1234, rv
                     if isinstance(rv, Category):
                         categories.append(rv)
                         _remember_category(rv, category)
@@ -287,13 +284,11 @@ class AtomParser(TPParser):
                     _remember_category(rv, category)
                     self.categories.append(rv)
                 categories.append(rv)
-        print 12345, tags, categories
         return tags, categories
 
     def parse_comments(self, post):
         """Parse the comments for the post."""
         for extension in self.extensions:
-            print 1, 'extension', extension
             post.comments.extend(extension.parse_comments(post) or ())
 
 
@@ -396,14 +391,12 @@ class TPZEAExtension(Extension):
         return author
 
     def _parse_tag(self, element):
-        print 'parsing TAG'
         term = element.attrib['term']
         if term not in self._tags:
             self._tags[term] = Tag(term, element.attrib.get('label'))
         return self._tags[term]
 
     def _parse_category(self, element):
-        print 'parsing CATEGORY'
         term = element.attrib['term']
         if term not in self._categories:
             self._categories[term] = Category(
@@ -434,7 +427,6 @@ class TPZEAExtension(Extension):
             return self._parse_category(element)
 
     def parse_comments(self, post):
-        print 'parsing comments for', post
         comments = {}
         unresolved_parents = {}
 

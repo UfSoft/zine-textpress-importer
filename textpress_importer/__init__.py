@@ -456,7 +456,7 @@ class TPZEAExtension(Extension):
             )
             comments[int(element.findtext(textpress.id))] = comment
             parent = element.findtext(textpress.parent)
-            if parent is not None:
+            if parent is not None or '':
                 unresolved_parents[comment] = int(parent)
 
         for comment, parent_id in unresolved_parents.iteritems():

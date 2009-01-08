@@ -297,6 +297,7 @@ class Writer(object):
             self.tp('parent', text=c.parent_id is not None and str(c.parent_id)
                     or '', parent=comment)
             self.tp('status', text=str(c.status), parent=comment)
+            self.tp('submitter_ip', text=c.submitter_ip, parent=comment)
             self.tp('data', text=dumps({
                 'raw_body':     c.raw_body,
                 'parser_data':  c.parser_data

@@ -195,6 +195,10 @@ class AtomParser(TPParser):
         if link is not None:
             link = link.attrib.get('href')
 
+        post_parser = _pickle(entry.findall(textpress.data)[0].text).get('parser', 'html')
+        if post_parser not in get_application().parsers:
+            post_parser = 'html'
+
         post = Post(
             entry.findtext(textpress.slug),                 # slug
             _get_text_content(entry.findall(atom.title)),   # title
@@ -210,7 +214,7 @@ class AtomParser(TPParser):
             _get_html_content(entry.findall(atom.content)), # body
             tags,                                           # tags
             categories,                                     # categories
-            parser='html',
+            parser=post_parser,
             updated=updated,
             uid=entry.findtext(atom.id)
         )
@@ -443,12 +447,17 @@ class TPZEAExtension(Extension):
 
             body = element.findall(textpress.data)
             if body:
-                body = _pickle(body[0].text).get('raw_body', u'')
+                pickled = _pickle(body[0].text)
+                body = pickled.get('raw_body', u'')
+
+                comment_parser = pickled.get('parser', 'html')
+                if comment_parser not in get_application().parsers:
+                    comment_parser = 'html'
 
             comment = Comment(
                 author, body, email, www, None,
                 parse_iso8601(element.findtext(textpress.published)),
-                element.findtext(textpress.submitter_ip), 'html',
+                element.findtext(textpress.submitter_ip), comment_parser,
                 _to_bool(element.findtext(textpress.is_pingback)),
                 int(element.findtext(textpress.status)),
                 element.findtext(textpress.blocked_msg),

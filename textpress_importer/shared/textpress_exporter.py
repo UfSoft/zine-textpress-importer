@@ -150,10 +150,11 @@ class Participant(object):
 class Writer(object):
 
     def __init__(self, app, description_to_category=True,
-                 tags_to_categories=False):
+                 tags_to_categories=False, keep_as_tags=()):
         self.app = app
         self.description_to_category = description_to_category
         self.tags_to_categories = tags_to_categories
+        self.keep_as_tags = keep_as_tags
         self.etree = etree = get_etree()
         self.atom = _ElementHelper(etree, ATOM_NS)
         self.tp = _ElementHelper(etree, TEXTPRESS_NS)
@@ -305,8 +306,8 @@ class Writer(object):
             }, 2).encode('base64'), parent=comment)
 
         for tag in post.tags:
-            if (tag.description and self.description_to_category) \
-                                                    or self.tags_to_categories:
+            if ((tag.description and self.description_to_category) \
+            or self.tags_to_categories) and tag.slug not in self.keep_as_tags:
                 attrib = dict(term=tag.slug, scheme=TEXTPRESS_CATEGORY_URI)
             else:
                 attrib = dict(term=tag.slug, scheme=TEXTPRESS_TAG_URI)
@@ -334,6 +335,10 @@ def main():
         action='store_true',
         help="Convert all tags with descriptions to categories and all others "
              "are kept as tags. (%default)")
+    parser.add_option('--keep-as-tag', '-k', action='append',
+        help="keep the passed string has a tag no matter if the above flags "
+              "are user or not. Pass multiple '--keep-as-tag/-k' for multiple "
+              "tags.")
 
     options, args = parser.parse_args()
     if not options.instance:
@@ -354,7 +359,7 @@ def main():
     export_file = open(export_filename, 'w')
 
     exporter = Writer(application, options.with_descriptions_to_categories,
-                      options.tags_to_categories)
+                      options.tags_to_categories, options.keep_as_tag)
     for entry in exporter._generate():
         export_file.write(entry)
 

@@ -299,35 +299,15 @@ class AtomParser(TPParser):
 class FeedImportError(UserException):
     """Raised if the system was unable to import the feed."""
 
-class FeedImportForm(forms.Form):
-    """This form is used in the Textpress importer."""
-    download_url = forms.TextField(
-        lazy_gettext(u'Textpress Export File Download URL'),
-        validators=[is_valid_url()])
-
 class TextPressFeedImporter(Importer):
     name = 'textpress-feed'
     title = lazy_gettext(u'TextPress Importer')
 
     def configure(self, request):
-        form = FeedImportForm()
 
         if request.method == 'POST' and form.validate(request.form):
             feed = request.files.get('feed')
-            if form.data['download_url']:
-                if not form.data['download_url'].endswith('.tpxa'):
-                    error = _(u"Don't pass a real feed URL, it should be a "
-                              u"regular URL where you're serving the file "
-                              u"generated with the textpress_exporter.py script")
-                    flash(error, 'error')
-                    return self.render_admin_page('import_textpress.html',
-                                                  form=form.as_widget(),
-                                                  bugs_link=BUGS_LINK)
-                try:
-                    feed = urllib.urlopen(form.data['download_url'])
-                except Exception, e:
-                    error = _(u'Error downloading from URL: %s') % e
-            elif not feed:
+            if not feed:
                 return redirect_to('import/feed')
 
             try:
@@ -341,7 +321,6 @@ class TextPressFeedImporter(Importer):
                 return redirect_to('admin/import')
 
         return self.render_admin_page('import_textpress.html',
-                                      form=form.as_widget(),
                                       bugs_link=BUGS_LINK)
 
 

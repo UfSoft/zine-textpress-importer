@@ -20,7 +20,6 @@
     try to address the problem.{% endtrans %}</p>
   {% call form(enctype='multipart/form-data') %}
     <dl>
-      {{ form.download_url.as_dd() }}
       <dt>{{ _("Upload Textpress Export File") }}</dt>
       <dd><input type="file" name="feed" size="20"></dd>
     </dl>

@@ -5,7 +5,7 @@
     Once downloaded, execute it and pass `-h` in order to have a look at it's
     options.
 
-    The implementation was copyied and changed acording to needs from the
+    The implementation was copied and changed according to needs from the
     newest revision of TextPress, right before the TextPress to Zine name
     changes.
 
@@ -22,6 +22,7 @@
     :copyright: Copyright 2008 by Armin Ronacher, 2009 by Pedro Algarvio.
     :license: GNU GPL.
 """
+import locale
 from cPickle import dumps
 from datetime import datetime
 from itertools import chain
@@ -160,18 +161,24 @@ class Writer(object):
         self.tp = _ElementHelper(etree, TEXTPRESS_NS)
         self._dependencies = {}
         self.users = {}
+        self.db_users = {}
         self.participants = [x(self) for x in
                              emit_event('get-tpxa-participants') if x]
 
     def _generate(self):
         now = datetime.utcnow()
         posts = iter(Post.objects.order_by(Post.last_update.desc()))
+        from textpress.plugins import pages as textpress_pages
+        pages = iter(textpress_pages.Page.objects.all())
         try:
             first_post = posts.next()
+            first_page = pages.next()
             last_update = first_post.last_update
             posts = chain((first_post,), posts)
+            pages = chain((first_page,), pages)
         except StopIteration:
             first_post = None
+            first_page = None
             last_update = now
 
         feed_id = build_tag_uri(self.app, last_update, 'tpxa_export', 'full')
@@ -216,6 +223,10 @@ class Writer(object):
         for post in posts:
             yield dump_node(self._dump_post(post))
 
+        # dump all the pages
+        for page in pages:
+            yield dump_node(self._dump_page(page))
+
         # if we have dependencies (very likely) dump them now
         if self._dependencies:
             yield '<tp:dependencies>'
@@ -243,6 +254,7 @@ class Writer(object):
         for participant in self.participants:
             participant.process_user(rv, user)
         self.users[user.user_id] = rv
+        self.db_users[user.user_id] = user
 
     def _dump_post(self, post):
         url = url_for(post, _external=True)
@@ -273,6 +285,7 @@ class Writer(object):
         if post.intro:
             self.atom('summary', type='html', text=post.intro.render(),
                       parent=entry)
+        self.tp('content_type', text="entry", parent=entry)
         self.tp('data', text=dumps({
             'extra':        post.extra,
             'raw_body':     post.raw_body,
@@ -319,6 +332,41 @@ class Writer(object):
             participant.process_post(entry, post)
         return entry
 
+    def _dump_page(self, page):
+        now = datetime.utcnow()
+        # Fake user, at least make sure it's an admin
+        user = [u for u in self.db_users if self.db_users[u].is_manager][0]
+        url = url_for(page, _external=True)
+        entry = self.atom('entry', {'xml:base': url})
+        self.atom('title', text=page.title, type='text', parent=entry)
+        self.atom('id', text=str(page.page_id), parent=entry)
+        self.atom('updated', text=format_iso8601(now),
+                  parent=entry)
+        self.atom('published', text=format_iso8601(now),
+                  parent=entry)
+        self.atom('link', href=url, parent=entry)
+
+        author = self.atom('author', parent=entry)
+        author.attrib[self.tp.dependency] = self.users[user].attrib[self.tp.dependency]
+        self.atom('name', text=self.db_users[user].display_name, parent=author)
+        self.atom('email', text=self.db_users[user].email, parent=author)
+
+        self.tp('slug', text=page.key, parent=entry)
+        self.tp('id', text=str(page.page_id), parent=entry)
+
+        self.atom('content', type='html', text=page.body.render(), parent=entry)
+
+        self.tp('content_type', text="page", parent=entry)
+        self.tp('data', text=dumps({
+            'extra':        page.extra,
+            'raw_body':     page.raw_body,
+            'extra':        page.extra
+        }, 2).encode('base64'), parent=entry)
+
+        for participant in self.participants:
+            participant.process_post(entry, page)
+        return entry
+
 def main():
     from optparse import OptionParser
     from textpress.application import make_textpress
@@ -355,8 +403,11 @@ def main():
     title = application.cfg['blog_title']
     export_filename = title and title.replace(' ', '_') + '_export.tpxa' \
                                                         or 'blog_export.tpxa'
+
     print export_filename
     export_file = open(export_filename, 'w')
+
+    locale.setlocale(locale.LC_ALL, ('en_US', 'UTF-8'))
 
     exporter = Writer(application, options.with_descriptions_to_categories,
                       options.tags_to_categories, options.keep_as_tag)

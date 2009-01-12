@@ -219,6 +219,9 @@ class AtomParser(TPParser):
             uid=entry.findtext(atom.id)
         )
         post.element = entry
+        content_type = entry.findtext(textpress.content_type)
+        if content_type not in ('page', 'entry'):
+            post.content_type = 'entry'
 
         # now parse the comments for the post
         self.parse_comments(post)
@@ -299,11 +302,15 @@ class AtomParser(TPParser):
 class FeedImportError(UserException):
     """Raised if the system was unable to import the feed."""
 
+class FeedImportForm(forms.Form):
+    """This form is used in the Textpress importer."""
+
 class TextPressFeedImporter(Importer):
     name = 'textpress-feed'
     title = lazy_gettext(u'TextPress Importer')
 
     def configure(self, request):
+        form = FeedImportForm()
 
         if request.method == 'POST' and form.validate(request.form):
             feed = request.files.get('feed')
@@ -314,6 +321,7 @@ class TextPressFeedImporter(Importer):
                 blog = parse_feed(feed)
             except Exception, e:
                 log.exception(_(u'Error parsing uploaded file'))
+                print repr(e)
                 flash(_(u'Error parsing feed: %s') % e, 'error')
             else:
                 self.enqueue_dump(blog)
@@ -321,6 +329,7 @@ class TextPressFeedImporter(Importer):
                 return redirect_to('admin/import')
 
         return self.render_admin_page('import_textpress.html',
+                                      form=form.as_widget(),
                                       bugs_link=BUGS_LINK)
 
 

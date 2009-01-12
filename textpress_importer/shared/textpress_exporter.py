@@ -169,8 +169,14 @@ class Writer(object):
     def _generate(self):
         now = datetime.utcnow()
         posts = iter(Post.objects.order_by(Post.last_update.desc()))
-        from textpress.plugins import pages as textpress_pages
-        pages = iter(textpress_pages.Page.objects.all())
+        if 'pages' in self.app.plugins:
+            try:
+                from textpress.plugins import pages as textpress_pages
+                pages = iter(textpress_pages.Page.objects.all())
+            except:
+                # Last resort
+                pages = ()
+
         try:
             first_post = posts.next()
             first_page = pages.next()

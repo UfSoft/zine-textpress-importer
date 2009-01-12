@@ -171,11 +171,11 @@ class Writer(object):
         posts = iter(Post.objects.order_by(Post.last_update.desc()))
         if 'pages' in self.app.plugins:
             try:
-                from textpress.plugins import pages as textpress_pages
+                from textpress.plugins import pages1 as textpress_pages
                 pages = iter(textpress_pages.Page.objects.all())
             except:
                 # Last resort
-                pages = ()
+                pages = iter(())
 
         try:
             first_post = posts.next()

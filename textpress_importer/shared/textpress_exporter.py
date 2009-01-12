@@ -32,11 +32,10 @@ from textpress.api import *
 from textpress.models import Post, User
 try:
     from textpress.utils import build_tag_uri
-    from textpress.utils.dates import format_iso8601
     from textpress.utils.xml import get_etree, escape
 except ImportError:
     # Older Textpress
-    from textpress.utils import get_etree, escape, build_tag_uri, format_iso8601
+    from textpress.utils import get_etree, escape, build_tag_uri
 
 
 
@@ -89,6 +88,8 @@ XML_PREAMBLE = u'''\
 <a:updated>%(updated)s</a:updated>'''
 XML_EPILOG = '</a:feed>'
 
+def format_iso8601(obj):
+    return obj.strftime('%Y-%m-%dT%H:%M:%SZ')
 
 def export(app):
     """Dump all the application data into an TPXA response."""

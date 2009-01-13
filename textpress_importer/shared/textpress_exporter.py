@@ -22,7 +22,6 @@
     :copyright: Copyright 2008 by Armin Ronacher, 2009 by Pedro Algarvio.
     :license: GNU GPL.
 """
-import locale
 from cPickle import dumps
 from datetime import datetime
 from itertools import chain
@@ -418,8 +417,6 @@ def main():
 
     print export_filename
     export_file = open(export_filename, 'w')
-
-    locale.setlocale(locale.LC_ALL, "C")
 
     exporter = Writer(application, options.with_descriptions_to_categories,
                       options.tags_to_categories, options.keep_as_tag)

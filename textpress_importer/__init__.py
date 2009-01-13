@@ -9,6 +9,7 @@
     :copyright: (c) 2008 by the Zine Team, see AUTHORS for more details.
     :license: BSD, see LICENSE for more details.
 """
+import urllib
 from pickle import loads
 from lxml import etree
 from os.path import join, dirname
@@ -304,6 +305,9 @@ class FeedImportError(UserException):
 
 class FeedImportForm(forms.Form):
     """This form is used in the Textpress importer."""
+    download_url = forms.TextField(
+        lazy_gettext(u'Textpress Export File Download URL'),
+        validators=[is_valid_url()])
 
 class TextPressFeedImporter(Importer):
     name = 'textpress-feed'
@@ -314,7 +318,24 @@ class TextPressFeedImporter(Importer):
 
         if request.method == 'POST' and form.validate(request.form):
             feed = request.files.get('feed')
-            if not feed:
+            if form.data['download_url']:
+                if not form.data['download_url'].endswith('.tpxa'):
+                    error = _(u"Don't pass a real feed URL, it should be a "
+                              u"regular URL where you're serving the file "
+                              u"generated with the textpress_exporter.py script")
+                    flash(error, 'error')
+                    return self.render_admin_page('import_textpress.html',
+                                                  form=form.as_widget(),
+                                                  bugs_link=BUGS_LINK)
+                try:
+                    feed = urllib.urlopen(form.data['download_url'])
+                except Exception, e:
+                    error = _(u'Error downloading from URL: %s') % e
+                    flash(error, 'error')
+                    return self.render_admin_page('import_textpress.html',
+                                                  form=form.as_widget(),
+                                                  bugs_link=BUGS_LINK)
+            elif not feed:
                 return redirect_to('import/feed')
 
             try:

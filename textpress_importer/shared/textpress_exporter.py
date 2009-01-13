@@ -301,6 +301,11 @@ class Writer(object):
         }, 2).encode('base64'), parent=entry)
 
         for c in post.comments:
+            if hasattr(c, 'status'):
+                comment_status = str(c.status)
+            else:
+                comment_status = '0'    # Moderated
+
             comment = self.tp('comment', parent=entry)
             self.tp('id', text=str(c.comment_id), parent=comment)
             author = self.tp('author', parent=comment)
@@ -317,7 +322,7 @@ class Writer(object):
                     parent=comment)
             self.tp('parent', text=c.parent_id is not None and str(c.parent_id)
                     or '', parent=comment)
-            self.tp('status', text=str(c.status), parent=comment)
+            self.tp('status', text=comment_status, parent=comment)
             self.tp('submitter_ip', text=c.submitter_ip or '0.0.0.0',
                     parent=comment)
             self.tp('data', text=dumps({
